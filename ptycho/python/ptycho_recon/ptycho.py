@@ -1,14 +1,15 @@
 from numpy import *
 from numpy.fft import *
 import numpy as np
-import filters as filters
+import ptycho_recon.filters as filters
+#import filters as filters
 import scipy.io as sio #for read/write matlab file
 from scipy import ndimage
 import os #for change directory
 
-import utility_function as u
-import pie_mixed_states
-from probe import STEMprobe
+import ptycho_recon.utility_function as u
+import ptycho_recon.pie_mixed_states as pie_mixed_states
+from ptycho_recon.probe import STEMprobe
 
 ##############################################################################################
 class ptycho:
@@ -33,7 +34,7 @@ class ptycho:
 
           self.paraDict['dk_y'] = dk
           self.paraDict['dk_x'] = dk
-          
+
           self.paraDict['N_dp'] = self.dp.shape[1]
           self.paraDict['N_scan'] = self.dp.shape[0]
           self.paraDict['badPixels'] = zeros((self.dp.shape[1],self.dp.shape[1]))
@@ -42,7 +43,7 @@ class ptycho:
           self.paraDict['Niter_print'] = 1
           self.paraDict['beta'] = 1.0
           self.paraDict['alpha'] = 0.1
-          
+
           self.paraDict['Niter_update_probe'] = 10
           self.paraDict['uniformInitialObject'] = True
           self.paraDict['normalizeInitialProbe'] = True
@@ -51,17 +52,17 @@ class ptycho:
           self.paraDict['filter_r_type_probe'] = 'none'
           self.paraDict['filter_f_type_psi'] = 'cbed'
           self.paraDict['filter_f_type_probe'] = 'none'
-         
+
           self.paraDict['saveData'] = False
           self.paraDict['loadData'] = False
-          
+
           self.paraDict['reconID'] = 0
           self.paraDict['printID'] = ''
-          
+
           #mixed-states
           self.paraDict['N_probe'] = 1
           self.paraDict['N_object'] = 1
-      
+
       def recon(self):
           print("begin ptychographic reconstruction")
           pie_mixed_states.reconPIE_mixed_state(self.dp, self.paraDict)
@@ -140,4 +141,3 @@ class ptycho:
 
           result_dir = result_dir + "_" + waveFunction
           return result_dir
-

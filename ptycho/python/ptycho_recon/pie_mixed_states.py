@@ -1,7 +1,7 @@
 import scipy.io as sio #for read/write matlab file
 from scipy import ndimage
-import utility_function as u
-import utility_function_recon as ur
+import ptycho_recon.utility_function as u
+import ptycho_recon.utility_function_recon as ur
 import pyfftw
 from numpy import *
 from numpy.fft import *
@@ -18,11 +18,11 @@ def reconPIE_mixed_state(dp, paraDict):
 
     auxiFunc = ur.auxiliary_function(paraDict)
 
-    ########## initialize exit wave ########## 
+    ########## initialize exit wave ##########
     psi = zeros((N_probe, N_roi, N_roi), dtype=np.complex128)
     psi_old = zeros((N_probe, N_roi, N_roi), dtype=np.complex128)
     delta_psi = zeros((N_probe, N_roi, N_roi), dtype=np.complex128)
-    
+
     ########## initialize CBED ##########
     dp_tot = sum(dp)
     dp_avg = np.sum(dp * dp, axis = 0)/paraDict['N_scan']
@@ -62,25 +62,25 @@ def reconPIE_mixed_state(dp, paraDict):
     dp_error = zeros(paraDict['N_scan']) #difference between data and recon wave
     s, dp_error_old = auxiFunc.initializeDataError()
 
-    if 'previousIteration' in paraDict: 
+    if 'previousIteration' in paraDict:
         startNiter = paraDict['previousIteration']
         if startNiter >= paraDict['Niter_update_states']:
             N_object_recon = N_object; N_probe_recon = N_probe
 
-    ################################# prepare result dictionary ################################# 
+    ################################# prepare result dictionary #################################
     resultDir = {'object':O}
     resultDir['psi'] = psi
     resultDir['probes'] = probes
     resultDir['probe0'] = paraDict['probe0'].copy()
     if 'probes0' in paraDict: resultDir['probes0'] = paraDict['probes0'].copy()
-    resultDir['dx_x'] = 1.0/(paraDict['dk_x']*N_roi); 
+    resultDir['dx_x'] = 1.0/(paraDict['dk_x']*N_roi);
     resultDir['dx_y'] = 1.0/(paraDict['dk_y']*N_roi);
     resultDir['dk_x'] = paraDict['dk_x']; resultDir['dk_y'] = paraDict['dk_y']
     resultDir['ppX'] = paraDict['ppX']; resultDir['ppY'] = paraDict['ppY']
     resultDir['dp_avg'] = dp_avg
     resultDir['s'] = s
     resultDir['badPixels'] = paraDict['badPixels']
-    
+
     resultDir['dp_error'] = dp_error
     if 'filter_r_probe' in paraDict:
         resultDir['filter_r_probe'] = paraDict['filter_r_probe']
@@ -93,15 +93,15 @@ def reconPIE_mixed_state(dp, paraDict):
     if 'probe0_info' in paraDict:
         resultDir['probe0_info'] = paraDict['probe0_info']
 
-    ################################## main recon loop #################################    
+    ################################## main recon loop #################################
     for k in range(startNiter, Niter):
         if mod(k, paraDict['Niter_print'])==0: auxiFunc.printStatus(timeLeft, k)
 
-        if k == paraDict['Niter_update_probe']: 
+        if k == paraDict['Niter_update_probe']:
             print('start probe update')
             start_time = time.time()
             time_counter = 1
-        if k == paraDict['Niter_update_position']: 
+        if k == paraDict['Niter_update_position']:
             print('start position correction')
             start_time = time.time()
             time_counter = 1
@@ -110,12 +110,12 @@ def reconPIE_mixed_state(dp, paraDict):
             N_object_recon = N_object; N_probe_recon = N_probe
             start_time = time.time()
             time_counter = 1
-            
+
             probes_temp = gramschmidt(probes.reshape(N_probe, N_roi*N_roi))
             probes[:,:,:] = probes_temp.reshape(N_probe, N_roi, N_roi)
-           
+
         update_order = random.permutation(paraDict['N_scan']) #random order
- 
+
         for i in update_order:
             O_old = auxiFunc.getObjectROI(O, i)
             for p in range(N_probe_recon):
@@ -155,7 +155,7 @@ def reconPIE_mixed_state(dp, paraDict):
         if k >= paraDict['Niter_update_states']:
             probes_temp = gramschmidt(probes.reshape(N_probe, N_roi*N_roi))
             probes[:,:,:] = probes_temp.reshape(N_probe, N_roi, N_roi)
-           
+
         ############################### calcuate data error #######################################
         s[k] = np.sum(dp_error)/dp_tot
         dp_error_old = dp_error.copy()
@@ -164,12 +164,12 @@ def reconPIE_mixed_state(dp, paraDict):
         if mod(k+1, paraDict['Niter_save'])==0: #save results
             saveName = paraDict['saveName'] + '_Niter'+str(k+1) + '.mat'
             sio.savemat(saveName,resultDir)
-    
+
         timeLeft = (time.time()-start_time)/time_counter * (Niter-k-1)
         time_counter += 1
 
 def proj(u, v):
-    return u * np.vdot(u,v) / np.vdot(u,u)  
+    return u * np.vdot(u,v) / np.vdot(u,u)
 
 def gramschmidt(V):
     U = np.copy(V)
@@ -177,4 +177,3 @@ def gramschmidt(V):
         for j in range(i):
             U[i,:] -= proj(U[j,:], V[i,:])
     return U
-

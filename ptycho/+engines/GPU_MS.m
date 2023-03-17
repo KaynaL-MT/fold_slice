@@ -33,7 +33,7 @@ function [p_out, fdb] = GPU_MS(p)
   
     %% INITIALIZE GPU IF AVAILABLE %%% 
     gpu_id = -1; 
-    param= GPU_wrapper.initialize(param);
+    param = GPU_wrapper.initialize(param);
     use_gpu = param.use_gpu;
 
     
